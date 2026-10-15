@@ -1,60 +1,278 @@
 ---
 interface Props {
 	category?: string;
+	title?: string;
+	slug?: string;
+	variant?: 'full' | 'inline' | 'home';
 }
-const { category = 'rutinas' } = Astro.props;
+const { category = 'rutinas', title = '', slug = '', variant = 'full' } = Astro.props;
 
-const items = [
+const AMZ_TAG = 'jworld009-20';
+const KLOOK_AID = '138920';
+
+function amzSearch(query: string): string {
+	return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&language=es_US&tag=${AMZ_TAG}`;
+}
+
+function amzDp(asin: string): string {
+	return `https://www.amazon.com/dp/${asin}?language=es_US&tag=${AMZ_TAG}`;
+}
+
+type AffiliateItem = {
+	tag: string;
+	title: string;
+	desc: string;
+	href: string;
+	cta: string;
+	badge?: string;
+};
+
+const text = `${title} ${slug}`.toLowerCase();
+
+// Contextual product matching by article topic/keywords
+const TOPIC_ITEMS: { match: RegExp; items: AffiliateItem[] }[] = [
 	{
-		tag: 'Tienda Oficial · Envío Global',
-		title: 'Olive Young Global — Los más vendidos en Corea',
-		desc: 'Consulta los rankings oficiales de Seúl con envío internacional directo a Latinoamérica, España y EE. UU.',
-		href: 'https://global.oliveyoung.com/',
-		cta: 'Ver en Olive Young →',
+		match: /centella|cica|sensible|rojeces|barrera|acn[eé]/i,
+		items: [
+			{
+				tag: 'Top #1 Calma y Barrera · Amazon Global',
+				title: 'SKIN1004 Madagascar Centella Ampoule (100% Extracto de Cica)',
+				desc: 'El sérum coreano más vendido para calmar piel sensible, reducir rojeces y equilibrar la barrera cutánea sin sensación grasa.',
+				href: amzSearch('SKIN1004 Madagascar Centella Ampoule'),
+				cta: 'Ver en Amazon (ES) →',
+			},
+			{
+				tag: 'Crema Reparadora Cica · Amazon Global',
+				title: 'COSRX Pure Fit Cica & Dr.Jart+ Cicapair Tiger Grass',
+				desc: 'Fórmulas coreanas concentradas con madecassoside y asiaticoside para piel reactiva o con tendencia acneica.',
+				href: amzSearch('Korean skincare Centella Cica cream serum'),
+				cta: 'Ver opciones →',
+			},
+		],
 	},
 	{
-		tag: 'Catálogo K-Beauty en Español',
-		title: 'YesStyle — Cosmética Coreana y Maquillaje de K-Drama',
-		desc: 'Gran variedad de marcas coreanas (COSRX, Beauty of Joseon, SKIN1004, Anua, Rom&nd) con reseñas en español.',
-		href: 'https://www.yesstyle.com/es/k-beauty',
+		match: /maquillaje|actriz|kdrama|k-drama|labial|tint|base|cushion|mirada|cejas/i,
+		items: [
+			{
+				tag: 'El Labial de los K-Dramas · Amazon Global',
+				title: 'Rom&nd Juicy Lasting Tint & Peripera Ink The Velvet',
+				desc: 'Los tintes labiales coreanos favoritos de los maquilladores en Seúl para lograr el efecto jugoso y degradado natural.',
+				href: amzSearch('Romand Juicy Lasting Tint Korean lip tint'),
+				cta: 'Ver tonos en Amazon →',
+			},
+			{
+				tag: 'Efecto Piel de Porcelana · Amazon Global',
+				title: 'TIRTIR Mask Fit Red Cushion & LANEIGE Lip Sleeping Mask',
+				desc: 'Bases cushion de acabado luminoso de larga duración y mascarilla nocturna de labios para un acabado de estudio.',
+				href: amzSearch('TIRTIR Mask Fit Cushion Laneige Lip Sleeping Mask'),
+				cta: 'Ver en Amazon (ES) →',
+			},
+		],
+	},
+	{
+		match: /solar|spf|pa\+\+\+\+|uv|sol\b/i,
+		items: [
+			{
+				tag: 'Top #1 Protector Solar Coreano · Amazon Global',
+				title: 'Beauty of Joseon Relief Sun: Rice + Probiotics & SKIN1004 Hyalu-Cica Sun Serum',
+				desc: 'Textura ultraligera tipo crema hidratante sin rastro blanco (white cast) ni sensación pegajosa bajo el maquillaje.',
+				href: amzSearch('Korean sunscreen Beauty of Joseon SKIN1004'),
+				cta: 'Ver en Amazon (ES) →',
+			},
+			{
+				tag: 'Retoque en Barra · Amazon Global',
+				title: 'TOCOBO Cotton Soft Sun Stick & Abib Quick Sunstick',
+				desc: 'Barras solares portátiles muy populares en Seúl para reaplicar cada 3 horas sobre el maquillaje sin ensuciar las manos.',
+				href: amzSearch('Korean sun stick TOCOBO Beauty of Joseon'),
+				cta: 'Ver opciones →',
+			},
+		],
+	},
+	{
+		match: /limpieza|limpiador|aceite|b[aá]lsamo|poros|seb[aá]ceos|puntos\s*negros/i,
+		items: [
+			{
+				tag: 'Paso 1: Aceite Desmaquillante · Amazon Global',
+				title: 'Anua Heartleaf Pore Control Cleansing Oil & Banila Co Clean It Zero',
+				desc: 'Disuelve protector solar, maquillaje y sebo oxidado en los poros emulsionando con agua tibia sin irritar.',
+				href: amzSearch('Anua Heartleaf Pore Control Cleansing Oil Banila Co'),
+				cta: 'Ver en Amazon (ES) →',
+			},
+			{
+				tag: 'Paso 2: Gel pH Bajo · Amazon Global',
+				title: 'COSRX Low pH Good Morning Gel Cleanser & Round Lab 1025 Dokdo Cleanser',
+				desc: 'Limpiadores acuosos suaves con pH equilibrado (5.0–6.0) que limpian sin dejar la piel tirante.',
+				href: amzSearch('COSRX Low pH Good Morning Gel Cleanser Round Lab Dokdo'),
+				cta: 'Ver en Amazon (ES) →',
+			},
+		],
+	},
+	{
+		match: /mucina|caracol|arroz|niacinamida|retinol|pdrn|reedle|col[aá]geno|hidrat/i,
+		items: [
+			{
+				tag: 'Esencia Icónica #1 · Amazon Global',
+				title: 'COSRX Advanced Snail 96 Mucin Power Essence',
+				desc: '96% de filtrado de secreción de caracol para hidratación profunda, elasticidad y efecto «Glass Skin» luminoso.',
+				href: amzDp('B00PBX3L7K'),
+				cta: 'Ver en Amazon (ES) →',
+			},
+			{
+				tag: 'Luminosidad con Arroz y Niacinamida · Amazon Global',
+				title: 'Beauty of Joseon Glow Serum (Propolis + Niacinamide) & I\'m From Rice Toner',
+				desc: 'Combinación favorita en Corea para unificar el tono apagado y aportar brillo saludable.',
+				href: amzSearch('Beauty of Joseon Glow Serum Im From Rice Toner'),
+				cta: 'Ver en Amazon (ES) →',
+			},
+		],
+	},
+];
+
+const DEFAULT_ITEMS: AffiliateItem[] = [
+	{
+		tag: 'Bestseller Global #1 · Amazon en Español',
+		title: 'COSRX Advanced Snail 96 Mucin Power Essence (100 ml)',
+		desc: 'La esencia coreana más vendida del mundo para hidratar a fondo, reparar la textura y lograr el efecto «Glass Skin».',
+		href: amzDp('B00PBX3L7K'),
+		cta: 'Ver en Amazon (ES) →',
+	},
+	{
+		tag: 'Favoritos de Olive Young · Amazon en Español',
+		title: 'Beauty of Joseon, SKIN1004, Anua y Medicube — Tienda Oficial K-Beauty',
+		desc: 'Explora los sérums, tónicos de arroz, parches de colágeno y limpiadores #1 en Seúl con envío internacional.',
+		href: amzSearch('Korean skincare best sellers COSRX Beauty of Joseon SKIN1004 Anua'),
 		cta: 'Explorar K-Beauty →',
 	},
+];
+
+const matchedPair = TOPIC_ITEMS.find((entry) => entry.match.test(text))?.items ?? DEFAULT_ITEMS;
+
+const thirdItem: AffiliateItem =
+	category === 'kdrama' || category === 'lifestyle'
+		? {
+				tag: 'Viajes y Cultura Coreana · Klook Oficial',
+				title: 'Tours de K-Dramas en Seúl, Hanbok y eSIM de Datos para Corea',
+				desc: '¿Planeas viajar a Corea algún día? Reserva tours oficiales de locaciones de K-Dramas y conectividad en español.',
+				href: `https://www.klook.com/es/coureg/13-south-korea-things-to-do/?aid=${KLOOK_AID}`,
+				cta: 'Ver en Klook (ES) →',
+			}
+		: {
+				tag: 'Top Kits y Mascarillas Coreanas · Amazon Global',
+				title: 'Biodance Bio-Collagen Real Deep Mask & LANEIGE Lip Sleeping Mask',
+				desc: 'Las mascarillas nocturnas de hidrogel y cuidado labial viralizadas en Seúl para una rutina intensiva en casa.',
+				href: amzSearch('Biodance Bio Collagen Mask Laneige Lip Sleeping Mask'),
+				cta: 'Ver en Amazon (ES) →',
+			};
+
+const fullItems: AffiliateItem[] = [...matchedPair, thirdItem];
+
+const homeItems: AffiliateItem[] = [
 	{
-		tag: 'Cultura Coreana Interactiva · Gratis',
-		title: 'Dokkaebi Night Parade (도깨비 야행) — Juego Web de Folclore Coreano',
-		desc: '¿Te gusta la mitología de los K-Dramas de fantasía? Prueba nuestro minijuego gratuito directamente en tu navegador.',
-		href: 'https://games.jworld.dev/dokkaebi/',
-		cta: 'Jugar Gratis →',
+		tag: 'Esencia #1 en Ventas',
+		title: 'COSRX Snail 96 Mucin Essence',
+		desc: 'Hidratación profunda y reparación de barrera para el clásico efecto «Glass Skin» coreano.',
+		href: amzDp('B00PBX3L7K'),
+		cta: 'Ver en Amazon →',
+	},
+	{
+		tag: 'Calma Piel Sensible',
+		title: 'SKIN1004 Madagascar Centella Ampoule',
+		desc: '100% extracto de Centella Asiática para calmar rojeces, brotes y sensibilidad diaria.',
+		href: amzSearch('SKIN1004 Madagascar Centella Ampoule'),
+		cta: 'Ver en Amazon →',
+	},
+	{
+		tag: 'Maquillaje K-Drama',
+		title: 'Rom&nd Juicy Lasting Tint & Cushion',
+		desc: 'Tintes labiales jugosos y bases cushion ligeras usadas por maquilladores en Seúl.',
+		href: amzSearch('Romand Juicy Lasting Tint Korean makeup'),
+		cta: 'Ver en Amazon →',
+	},
+	{
+		tag: 'Mascarilla Viral en Seúl',
+		title: 'Biodance Bio-Collagen & LANEIGE Lip Mask',
+		desc: 'Cuidado nocturno intensivo con colágeno de bajo peso molecular y mascarilla labial.',
+		href: amzSearch('Biodance Bio Collagen Mask Laneige Lip Mask'),
+		cta: 'Ver en Amazon →',
 	},
 ];
 ---
 
-<aside class="prep-box" aria-label="Dónde encontrar productos de K-Beauty desde casa">
-	<div class="prep-head">
-		<span class="prep-badge">GUÍA K-BEAUTY EN CASA</span>
-		<h3 class="prep-title">Dónde encontrar cosmética coreana original sin viajar a Seúl</h3>
-		<p class="prep-sub">
-			Para evitar imitaciones, te recomendamos verificar siempre distribuidores internacionales autorizados o las tiendas globales oficiales.
-		</p>
-	</div>
-	<div class="prep-list">
-		{
-			items.map((item) => (
-				<a href={item.href} target="_blank" rel="noopener" class="prep-card">
-					<div class="prep-card-main">
+{
+	variant === 'inline' ? (
+		<aside class="prep-box prep-inline" aria-label="Productos de K-Beauty recomendados para este artículo (PR)">
+			<div class="prep-inline-head">
+				<span class="prep-badge">SELECCIÓN K-BEAUTY · ENVÍO INTERNACIONAL</span>
+				<span class="prep-inline-note">Disponibles en Amazon en Español</span>
+			</div>
+			<div class="prep-inline-grid">
+				{matchedPair.map((item) => (
+					<a href={item.href} target="_blank" rel="sponsored noopener" class="prep-card prep-card-compact">
+						<div class="prep-card-main">
+							<span class="prep-tag">{item.tag}</span>
+							<span class="prep-name">{item.title}</span>
+							<span class="prep-desc">{item.desc}</span>
+						</div>
+						<span class="prep-cta">{item.cta}</span>
+					</a>
+				))}
+			</div>
+			<p class="prep-foot">
+				※ Como Afiliado de Amazon, obtenemos ingresos por las compras adscritas que cumplen los requisitos, sin costo adicional para ti.
+			</p>
+		</aside>
+	) : variant === 'home' ? (
+		<section class="prep-home" aria-label="Favoritos de K-Beauty con envío internacional (PR)">
+			<div class="prep-home-head">
+				<div>
+					<span class="prep-badge">SELECCIÓN DE SEÚL · PR</span>
+					<h2 class="prep-home-title">Favoritos de K-Beauty disponibles desde casa</h2>
+					<p class="prep-sub">
+						Los cosméticos coreanos más buscados en nuestros artículos, con compra online en español y envío internacional a Latinoamérica, EE. UU. y España.
+					</p>
+				</div>
+			</div>
+			<div class="prep-home-grid">
+				{homeItems.map((item) => (
+					<a href={item.href} target="_blank" rel="sponsored noopener" class="prep-home-card">
 						<span class="prep-tag">{item.tag}</span>
-						<span class="prep-name">{item.title}</span>
-						<span class="prep-desc">{item.desc}</span>
-					</div>
-					<span class="prep-cta">{item.cta}</span>
-				</a>
-			))
-		}
-	</div>
-	<p class="prep-foot">
-		※ Las condiciones de envío internacional, aduanas y disponibilidad varían según tu país (México, España, Colombia, Argentina, Chile, Perú o EE. UU.). Revisa siempre los detalles en el sitio oficial antes de comprar.
-	</p>
-</aside>
+						<h3 class="prep-name">{item.title}</h3>
+						<p class="prep-desc">{item.desc}</p>
+						<span class="prep-cta">{item.cta}</span>
+					</a>
+				))}
+			</div>
+			<p class="prep-foot">
+				※ Enlaces de afiliado: Como Afiliado de Amazon, obtenemos ingresos por las compras adscritas que cumplen los requisitos. Verifica siempre la lista de ingredientes (INCI) según tu tipo de piel.
+			</p>
+		</section>
+	) : (
+		<aside class="prep-box" aria-label="Dónde comprar cosmética coreana original desde casa (PR)">
+			<div class="prep-head">
+				<span class="prep-badge">PR · K-BEAUTY DESDE CASA</span>
+				<h3 class="prep-title">Dónde encontrar estos esenciales de K-Beauty sin viajar a Seúl</h3>
+				<p class="prep-sub">
+					Seleccionamos las tiendas oficiales de marcas coreanas en Amazon (en español y con envío internacional) para evitar imitaciones y comparar precios fácilmente.
+				</p>
+			</div>
+			<div class="prep-list">
+				{fullItems.map((item) => (
+					<a href={item.href} target="_blank" rel="sponsored noopener" class="prep-card">
+						<div class="prep-card-main">
+							<span class="prep-tag">{item.tag}</span>
+							<span class="prep-name">{item.title}</span>
+							<span class="prep-desc">{item.desc}</span>
+						</div>
+						<span class="prep-cta">{item.cta}</span>
+					</a>
+				))}
+			</div>
+			<p class="prep-foot">
+				※ Como Afiliado de Amazon y colaborador de Klook, K-BEAUTY NOTE obtiene ingresos por las compras adscritas que cumplen los requisitos (sin ningún costo extra para ti). Las condiciones de envío varían según tu país (México, España, Colombia, Chile, Argentina, Perú o EE. UU.).
+			</p>
+		</aside>
+	)
+}
 
 <style>
 	.prep-box {
@@ -62,6 +280,34 @@ const items = [
 		background: var(--surface);
 		border: 1px solid var(--line);
 		border-radius: var(--radius);
+	}
+	.prep-inline {
+		margin: 0 0 32px;
+		padding: 18px 20px;
+		background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+	}
+	.prep-inline-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+		margin-bottom: 12px;
+		flex-wrap: wrap;
+	}
+	.prep-inline-note {
+		font-size: 11.5px;
+		color: var(--ink-3);
+	}
+	.prep-inline-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 10px;
+	}
+	.prep-card-compact {
+		flex-direction: column;
+		align-items: flex-start !important;
+		justify-content: space-between;
+		gap: 10px !important;
 	}
 	.prep-head {
 		margin-bottom: 16px;
@@ -104,10 +350,11 @@ const items = [
 		border: 1px solid var(--line);
 		border-radius: var(--radius-sm);
 		text-decoration: none;
-		transition: border-color 0.15s ease;
+		transition: border-color 0.15s ease, transform 0.15s ease;
 	}
 	.prep-card:hover {
 		border-color: var(--accent);
+		transform: translateY(-1px);
 	}
 	.prep-card-main {
 		display: flex;
@@ -126,11 +373,13 @@ const items = [
 		font-size: 14.5px;
 		color: var(--ink);
 		line-height: 1.45;
+		margin: 0;
 	}
 	.prep-desc {
 		font-size: 12.5px;
 		color: var(--ink-2);
 		line-height: 1.65;
+		margin: 0;
 	}
 	.prep-cta {
 		flex-shrink: 0;
@@ -145,9 +394,56 @@ const items = [
 		color: var(--ink-3);
 		line-height: 1.6;
 	}
-	@media (max-width: 600px) {
-		.prep-box {
+	.prep-home {
+		margin-top: 64px;
+		padding: 28px;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+	.prep-home-head {
+		margin-bottom: 18px;
+	}
+	.prep-home-title {
+		margin: 8px 0 6px;
+		font-family: var(--serif);
+		font-size: clamp(20px, 2.5vw, 24px);
+		color: var(--ink);
+	}
+	.prep-home-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 14px;
+	}
+	.prep-home-card {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: 8px;
+		padding: 16px;
+		background: var(--bg);
+		border: 1px solid var(--line);
+		border-radius: var(--radius-sm);
+		text-decoration: none;
+		transition: border-color 0.15s ease, transform 0.15s ease;
+	}
+	.prep-home-card:hover {
+		border-color: var(--accent);
+		transform: translateY(-2px);
+	}
+	@media (max-width: 900px) {
+		.prep-home-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+	@media (max-width: 640px) {
+		.prep-box,
+		.prep-home {
 			padding: 18px;
+		}
+		.prep-inline-grid,
+		.prep-home-grid {
+			grid-template-columns: 1fr;
 		}
 		.prep-card {
 			flex-direction: column;
