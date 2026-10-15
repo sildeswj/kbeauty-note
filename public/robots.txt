@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://seoul.jworld.dev/sitemap-index.xml
+Sitemap: https://kbeauty.jworld.dev/sitemap-index.xml

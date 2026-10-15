@@ -106,6 +106,10 @@ export default {
     if (url.pathname === "/api/subscribe") {
       return handleSubscribe(request, env, ctx);
     }
+    if (url.pathname === "/sitemap.xml") {
+      url.pathname = "/sitemap-index.xml";
+      return env.ASSETS.fetch(new Request(url.toString(), request));
+    }
     return env.ASSETS.fetch(request);
   },
 };
