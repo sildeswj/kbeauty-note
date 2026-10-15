@@ -1,0 +1,77 @@
+---
+import PostCard from '../../components/PostCard.astro';
+import Base from '../../layouts/Base.astro';
+import { CATEGORIES, getPosts } from '../../lib/posts';
+
+const posts = await getPosts();
+---
+
+<Base title="Todos los artículos | K-BEAUTY NOTE" description="Todos los artículos de K-BEAUTY NOTE: rutinas de skincare coreano, rankings de Olive Young, ingredientes, K-Dramas y estilo de vida desde Seúl.">
+	<main class="wrap">
+		<header class="lh">
+			<p class="eyebrow">All Articles</p>
+			<h1>Todos los artículos</h1>
+			<div class="chips">
+				<a href="/blog/" class="on">Todos <span>{posts.length}</span></a>
+				{CATEGORIES.map((c) => <a href={`/category/${c.slug}/`}>{c.label}</a>)}
+			</div>
+		</header>
+		<div class="grid">
+			{posts.map((p) => <PostCard post={p} />)}
+		</div>
+	</main>
+</Base>
+
+<style>
+	.lh {
+		padding: 56px 0 36px;
+		border-bottom: 1px solid var(--line);
+		margin-bottom: 44px;
+	}
+	.lh h1 {
+		margin-top: 10px;
+		font-size: clamp(28px, 4vw, 40px);
+	}
+	.chips {
+		margin-top: 22px;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+	.chips a {
+		font-size: 13px;
+		padding: 7px 14px;
+		border-radius: 999px;
+		border: 1px solid var(--line);
+		background: var(--surface);
+		color: var(--ink-2);
+	}
+	.chips a:hover {
+		border-color: var(--ink);
+		color: var(--ink);
+	}
+	.chips a.on {
+		background: var(--ink);
+		border-color: var(--ink);
+		color: #fff;
+	}
+	.chips span {
+		opacity: 0.7;
+		margin-left: 4px;
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 44px 32px;
+	}
+	@media (max-width: 960px) {
+		.grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+	@media (max-width: 600px) {
+		.grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

@@ -1,0 +1,100 @@
+---
+import { CATEGORIES } from '../lib/posts';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+	<div class="wrap grid">
+		<div class="about">
+			<p class="mark">K-BEAUTY NOTE</p>
+			<p class="desc">Medio digital en español escrito desde Seúl sobre cosmética coreana (K-Beauty), tendencias reales de Olive Young, secretos de belleza en los K-Dramas y cultura coreana para disfrutar desde casa.</p>
+		</div>
+		<div class="col">
+			<p class="h">CATEGORÍAS</p>
+			{CATEGORIES.map((c) => <a href={`/category/${c.slug}/`}>{c.label}</a>)}
+		</div>
+		<div class="col">
+			<p class="h">INFORMACIÓN</p>
+			<a href="/about/">Sobre Nosotros</a>
+			<a href="/privacy/">Política de Privacidad</a>
+			<a href="/blog/">Todos los Artículos</a>
+			<a href="/rss.xml">RSS</a>
+		</div>
+		<div class="col">
+			<p class="h">JWORLD</p>
+			<a href="https://jworld.dev" target="_blank" rel="noopener">JWorld Studio ↗</a>
+			<a href="https://games.jworld.dev/dokkaebi/" target="_blank" rel="noopener">Juego Dokkaebi ↗</a>
+			<a href="https://seoul.jworld.dev" target="_blank" rel="noopener">Seoul Trip Note (JP) ↗</a>
+		</div>
+	</div>
+	<div class="wrap biz">
+		<p>Publicado por: JWorld ／ Representante: Siwoo Jin (진시우) ／ Registro Comercial (Corea): 771-11-02601 ／ Contacto: <a href="mailto:help@jworld.dev">help@jworld.dev</a></p>
+		<p>© {year} K-BEAUTY NOTE · JWorld</p>
+	</div>
+</footer>
+
+<style>
+	.site-footer {
+		margin-top: 96px;
+		background: #1d1b19;
+		color: #c9c2b9;
+		font-size: 13px;
+		padding: 56px 0 28px;
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: 2fr 1fr 1fr 1fr;
+		gap: 40px;
+	}
+	.mark {
+		font-family: var(--serif);
+		font-size: 20px;
+		letter-spacing: 0.14em;
+		color: #fff;
+		margin: 0 0 12px;
+	}
+	.desc {
+		margin: 0;
+		line-height: 1.9;
+		color: #a39b91;
+		max-width: 420px;
+	}
+	.col {
+		display: flex;
+		flex-direction: column;
+		gap: 9px;
+	}
+	.h {
+		margin: 0 0 4px;
+		font-size: 11px;
+		letter-spacing: 0.18em;
+		color: #fff;
+		font-weight: 700;
+	}
+	.col a:hover,
+	.biz a:hover {
+		color: #fff;
+	}
+	.biz {
+		margin-top: 44px;
+		padding-top: 22px;
+		border-top: 1px solid #3a3632;
+		color: #857d74;
+		font-size: 12px;
+		display: flex;
+		justify-content: space-between;
+		gap: 16px;
+		flex-wrap: wrap;
+	}
+	.biz p {
+		margin: 0;
+	}
+	@media (max-width: 860px) {
+		.grid {
+			grid-template-columns: 1fr 1fr;
+		}
+		.about {
+			grid-column: 1 / -1;
+		}
+	}
+</style>

@@ -1,0 +1,255 @@
+---
+interface Props {
+	title?: string;
+	description?: string;
+	compact?: boolean;
+}
+
+const {
+	title = 'Recibe cada semana lo mejor del K-Beauty y K-Dramas desde Seúl',
+	description = 'Rankings actualizados de Olive Young, rutinas para cada tipo de piel y secretos de tus K-Dramas favoritos, directo en tu correo. Puedes darte de baja con un clic.',
+	compact = false,
+} = Astro.props;
+---
+
+<div id="newsletter" class={`newsletter-box ${compact ? 'compact' : ''}`}>
+	<div class="newsletter-badge">NEWSLETTER SEMANAL</div>
+	<h3 class="newsletter-title">{title}</h3>
+	<p class="newsletter-desc">{description}</p>
+
+	<form class="newsletter-form" id="newsletter-form">
+		<div class="input-group">
+			<input
+				type="email"
+				name="email"
+				id="newsletter-email"
+				placeholder="Tu correo electrónico (ej. hola@ejemplo.com)"
+				required
+				autocomplete="email"
+			/>
+			<button type="submit" id="newsletter-submit-btn">
+				<span class="btn-text">Suscribirme gratis</span>
+				<span class="btn-spinner" aria-hidden="true"></span>
+			</button>
+		</div>
+		<div class="form-message" id="newsletter-message" role="alert" aria-live="polite"></div>
+		<p class="privacy-note">Al suscribirte aceptas nuestra <a href="/privacy/">Política de Privacidad</a>.</p>
+	</form>
+</div>
+
+<script>
+	function setupNewsletter() {
+		const form = document.getElementById('newsletter-form') as HTMLFormElement | null;
+		if (!form || form.dataset.bound === 'true') return;
+		form.dataset.bound = 'true';
+
+		const emailInput = document.getElementById('newsletter-email') as HTMLInputElement | null;
+		const submitBtn = document.getElementById('newsletter-submit-btn') as HTMLButtonElement | null;
+		const messageBox = document.getElementById('newsletter-message') as HTMLElement | null;
+
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			if (!emailInput || !submitBtn || !messageBox) return;
+
+			const email = emailInput.value.trim();
+			if (!email) return;
+
+			submitBtn.disabled = true;
+			submitBtn.classList.add('loading');
+			messageBox.className = 'form-message';
+			messageBox.textContent = '';
+
+			try {
+				const res = await fetch('/api/subscribe', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ email }),
+				});
+
+				const data = await res.json().catch(() => ({}));
+
+				if (res.ok && data.success) {
+					messageBox.className = 'form-message success';
+					messageBox.innerHTML = `<strong>¡Gracias por suscribirte!</strong><br />${data.message || 'Te enviaremos las últimas novedades de K-Beauty y cultura coreana.'}`;
+					emailInput.value = '';
+					form.classList.add('submitted');
+				} else {
+					messageBox.className = 'form-message error';
+					messageBox.textContent = data.error || 'Ocurrió un error al registrarte. Por favor, inténtalo de nuevo.';
+				}
+			} catch (err) {
+				messageBox.className = 'form-message error';
+				messageBox.textContent = 'Error de conexión. Por favor, verifica tu internet e inténtalo de nuevo.';
+			} finally {
+				submitBtn.disabled = false;
+				submitBtn.classList.remove('loading');
+			}
+		});
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', setupNewsletter);
+	} else {
+		setupNewsletter();
+	}
+</script>
+
+<style>
+	.newsletter-box {
+		display: grid;
+		grid-template-columns: 1fr 1.1fr;
+		gap: 32px;
+		align-items: center;
+		background: #1d1b19;
+		color: #e9e4dd;
+		border-radius: var(--radius);
+		padding: 40px 44px;
+		scroll-margin-top: 120px;
+	}
+	.newsletter-badge {
+		grid-column: 1;
+		font-size: 10.5px;
+		font-weight: 700;
+		letter-spacing: 0.24em;
+		color: #e7a6b1;
+	}
+	.newsletter-title {
+		grid-column: 1;
+		margin: -20px 0 0;
+		font-family: var(--serif);
+		font-size: 22px;
+		line-height: 1.5;
+		color: #fff;
+	}
+	.newsletter-desc {
+		grid-column: 1;
+		margin: -18px 0 0;
+		font-size: 13.5px;
+		line-height: 1.85;
+		color: #b3aba1;
+	}
+	.newsletter-form {
+		grid-column: 2;
+		grid-row: 1 / span 3;
+	}
+	.input-group {
+		display: flex;
+		gap: 8px;
+	}
+	.input-group input {
+		flex: 1;
+		min-width: 0;
+		padding: 14px 16px;
+		font: inherit;
+		font-size: 14.5px;
+		border: 1px solid #3a3632;
+		border-radius: 999px;
+		background: #2a2724;
+		color: #fff;
+		outline: none;
+	}
+	.input-group input::placeholder {
+		color: #857d74;
+	}
+	.input-group input:focus {
+		border-color: #e7a6b1;
+	}
+	.input-group button {
+		font: inherit;
+		font-size: 14px;
+		font-weight: 700;
+		padding: 0 22px;
+		border: none;
+		border-radius: 999px;
+		background: #fff;
+		color: #1d1b19;
+		cursor: pointer;
+		white-space: nowrap;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		transition: background 0.2s;
+	}
+	.input-group button:hover {
+		background: #f6e7e8;
+	}
+	.input-group button:disabled {
+		opacity: 0.7;
+		cursor: not-allowed;
+	}
+	.btn-spinner {
+		display: none;
+		width: 1rem;
+		height: 1rem;
+		border: 2px solid #1d1b19;
+		border-top-color: transparent;
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+	}
+	.input-group button.loading .btn-text {
+		display: none;
+	}
+	.input-group button.loading .btn-spinner {
+		display: inline-block;
+	}
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	.form-message {
+		margin-top: 12px;
+		font-size: 13px;
+		line-height: 1.6;
+		display: none;
+	}
+	.form-message.success,
+	.form-message.error {
+		display: block;
+		border-radius: 10px;
+		padding: 10px 14px;
+	}
+	.form-message.success {
+		background: #2f3a2a;
+		color: #cfe3c3;
+	}
+	.form-message.error {
+		background: #3d2427;
+		color: #f2c3c9;
+	}
+	.privacy-note {
+		margin: 12px 0 0;
+		font-size: 11.5px;
+		color: #857d74;
+	}
+	.privacy-note a {
+		color: #b3aba1;
+		text-decoration: underline;
+	}
+	.newsletter-box.compact {
+		padding: 28px;
+	}
+	@media (max-width: 760px) {
+		.newsletter-box {
+			grid-template-columns: 1fr;
+			gap: 14px;
+			padding: 30px 24px;
+		}
+		.newsletter-title,
+		.newsletter-desc {
+			margin: 0;
+		}
+		.newsletter-form {
+			grid-column: 1;
+			grid-row: auto;
+		}
+		.input-group {
+			flex-direction: column;
+		}
+		.input-group button {
+			padding: 13px;
+		}
+	}
+</style>
